@@ -51,3 +51,7 @@ resource "aws_iam_group_policy_attachment" "group_ec2full_attach" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
 }
 
+resource "aws_iam_group_policy_attachment" "policy_s3_timeclone1_readonly_attach" {
+  group      = aws_iam_group.devops.id
+  policy_arn = aws_iam_policy.s3_timeclone1_readonly_policy.arn
+}
