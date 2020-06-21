@@ -1,5 +1,5 @@
 
-module "iam_user" {
+module "iam_user_ratnam" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-user"
   version = "~> 2.0"
 
@@ -13,3 +13,8 @@ module "iam_user" {
     pod = "Devops"
   }
 }
+
+output "iam_user_ratnam" {
+  value = module.iam_user_ratnam
+}
+
