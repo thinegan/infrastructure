@@ -1,3 +1,11 @@
+module "iam" {
+  source = "./modules/iam"
+}
+
+module "ec2" {
+  source = "./modules/ec2"
+}
+
 terraform {
   backend "remote" {
     hostname      = "app.terraform.io"
