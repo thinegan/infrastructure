@@ -18,12 +18,12 @@ module "vpc" {
   public_subnets  = ["10.38.1.0/20", "10.38.16.0/20", "10.38.32.0/20"]
   private_subnets = ["10.38.48.0/20", "10.38.64.0/20", "10.38.80.0/20"]
 
-  # enable_nat_gateway = true
+  enable_nat_gateway = true
   # single_nat_gateway = false
 
-  public_subnet_tags = {
-    Name = "overridden-name-public"
-  }
+  # public_subnet_tags = {
+  #   Name = "overridden-name-public"
+  # }
 
   tags = {
     Owner       = "user"
