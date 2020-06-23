@@ -15,21 +15,24 @@ module "vpc" {
   cidr = "10.38.0.0/16"
 
   azs             = ["us-east-1a", "us-east-1b", "us-east-1c"]
-  public_subnets  = ["10.38.1.0/20", "10.38.16.0/20", "10.38.32.0/20"]
+  public_subnets  = ["10.38.0.0/20", "10.38.16.0/20", "10.38.32.0/20"]
   private_subnets = ["10.38.48.0/20", "10.38.64.0/20", "10.38.80.0/20"]
 
-  enable_nat_gateway = true
+  enable_ipv6 = true
+
+
+  # enable_nat_gateway = true
   # single_nat_gateway = false
 
-  # public_subnet_tags = {
-  #   Name = "overridden-name-public"
-  # }
+  # # public_subnet_tags = {
+  # #   Name = "overridden-name-public"
+  # # }
 
-  # VPC Flow Logs (Cloudwatch log group and IAM role will be created)
-  enable_flow_log                      = true
-  create_flow_log_cloudwatch_log_group = true
-  create_flow_log_cloudwatch_iam_role  = true
-  flow_log_max_aggregation_interval    = 60
+  # # VPC Flow Logs (Cloudwatch log group and IAM role will be created)
+  # enable_flow_log                      = true
+  # create_flow_log_cloudwatch_log_group = true
+  # create_flow_log_cloudwatch_iam_role  = true
+  # flow_log_max_aggregation_interval    = 60
 
   tags = {
     Owner       = "user"
