@@ -57,6 +57,10 @@ module "vpc" {
   }
 }
 
+output "devVPC_id" {
+  value = module.vpc.vpc_id
+}
+
 
 # NACL Rules
 locals {
