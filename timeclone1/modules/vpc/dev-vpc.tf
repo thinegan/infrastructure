@@ -19,8 +19,9 @@ module "vpc" {
   private_subnets = ["10.38.48.0/20", "10.38.64.0/20", "10.38.80.0/20"]
 
   enable_ipv6 = true
-  enable_nat_gateway = true
-  single_nat_gateway = true
+  enable_nat_gateway    = true
+  single_nat_gateway    = true
+  enable_dns_hostnames  = true
 
   # Setup NACL - Public
   public_dedicated_network_acl = true
@@ -39,6 +40,14 @@ module "vpc" {
   tags = {
     Owner       = "user"
     Environment = "dev"
+  }
+
+  public_subnet_tags = {
+    "kubernetes.io/role/elb" = "1"
+  }
+
+  private_subnet_tags = {
+    "kubernetes.io/role/internal-elb" = "1"
   }
 
   vpc_tags = {
