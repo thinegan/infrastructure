@@ -14,6 +14,10 @@ module "s3" {
   source = "./modules/s3"
 }
 
+# module "eks" {
+#   source = "./modules/eks"
+# }
+
 terraform {
   backend "remote" {
     hostname      = "app.terraform.io"
