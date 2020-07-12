@@ -7,6 +7,7 @@ data "aws_security_group" "default" {
   vpc_id = module.vpc.vpc_id
 }
 
+# VPC
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
 
