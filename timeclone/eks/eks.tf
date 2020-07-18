@@ -68,12 +68,18 @@ module "dev_eks_ugen" {
         Environment = "test"
         GithubRepo  = "terraform-aws-eks"
         GithubOrg   = "terraform-aws-modules"
+        Name        = local.cluster_name
       }
       additional_tags = {
         ExtraTag = "nodepool1"
       }
     }
   }
+
+  worker_additional_security_group_ids = [aws_security_group.all_worker_mgmt.id]
+  map_roles                            = var.map_roles
+  map_users                            = var.map_users
+  map_accounts                         = var.map_accounts
 
 }
 
@@ -124,52 +130,66 @@ output "dev_eks_ugen" {
 # all ELB (HTTP/HTTPS) can be shared using the same SG
 ##########################################################
 
-# resource "aws_security_group" "central_elb_sg" {
-#   name        = "eks_ugen_elb_web_traffic"
-#   description = "Allow TLS inbound traffic"
-#   vpc_id      = data.terraform_remote_state.devVPC.outputs.vpc_id
+resource "aws_security_group" "central_elb_sg" {
+  name        = "eks_ugen_elb_web_traffic"
+  description = "Allow TLS inbound traffic"
+  vpc_id      = data.terraform_remote_state.devVPC.outputs.vpc_id
 
-#   ingress {
-#     from_port   = 443
-#     to_port     = 443
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-#   ingress {
-#     from_port   = 80
-#     to_port     = 80
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-#   egress {
-#     from_port       = 0
-#     to_port         = 0
-#     protocol        = "-1"
-#     cidr_blocks     = ["0.0.0.0/0"]
-#   }
+  egress {
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    cidr_blocks     = ["0.0.0.0/0"]
+  }
 
-#   tags = {
-#     Name = "${local.cluster_name}-ELB-SG"
-#   }
-# }
+  tags = {
+    Name = "${local.cluster_name}-ELB-SG"
+  }
+}
 
-# output "central_elb_sg" {
-#   value = aws_security_group.central_elb_sg
-# }
+output "central_elb_sg" {
+  value = aws_security_group.central_elb_sg
+}
 
-# resource "aws_security_group_rule" "Elb_Join_" {
-#   description              = "Allow node to communicate with ELB"
-#   from_port                = 0
-#   protocol                 = "tcp"
-#   security_group_id        = module.dev_eks_ugen.worker_security_group_id
-#   source_security_group_id = aws_security_group.central_elb_sg.id
-#   to_port                  = 65535
-#   type                     = "ingress"
+resource "aws_security_group_rule" "Elb_Join_" {
+  description              = "Allow node to communicate with ELB"
+  from_port                = 0
+  protocol                 = "tcp"
+  security_group_id        = module.dev_eks_ugen.worker_security_group_id
+  source_security_group_id = aws_security_group.central_elb_sg.id
+  to_port                  = 65535
+  type                     = "ingress"
 
-#   depends_on = [
-#     module.dev_eks_ugen,
-#   ]
-# }
+  depends_on = [
+    module.dev_eks_ugen,
+  ]
+}
 
+resource "aws_security_group" "all_worker_mgmt" {
+  name_prefix = "all_worker_management"
+  vpc_id      = data.terraform_remote_state.devVPC.outputs.vpc_id
+
+  ingress {
+    from_port = 22
+    to_port   = 22
+    protocol  = "tcp"
+
+    cidr_blocks = [
+      "10.38.0.0/16",
+    ]
+  }
+}
