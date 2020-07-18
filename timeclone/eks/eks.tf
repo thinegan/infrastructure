@@ -10,10 +10,6 @@ data "terraform_remote_state" "devVPC" {
 }
 
 
-# # module "vpc" {
-# #   source = "../vpc"
-# # }
-
 data "aws_eks_cluster" "cluster" {
   name = module.dev_eks_ugen.cluster_id
 }
@@ -22,23 +18,10 @@ data "aws_eks_cluster_auth" "cluster" {
   name = module.dev_eks_ugen.cluster_id
 }
 
-
-# module "vpc" {
-#   source = "./modules/vpc"
-# }
-
 locals {
-  # private_subnet_ids = [
-  #   data.terraform_remote_state.devVPC.outputs.private_subnets
-  # ]
-
-  # public_subnet_ids  = [
-  #   data.terraform_remote_state.devVPC.outputs.public_subnets
-  # ]
-
+  cluster_name       = "dev_eks_ugen"
   private_subnet_ids = data.terraform_remote_state.devVPC.outputs.private_subnets
   public_subnet_ids  = data.terraform_remote_state.devVPC.outputs.public_subnets
-
   eks_subnet_ids     = concat(local.public_subnet_ids, local.private_subnet_ids)
 }
 
@@ -52,53 +35,109 @@ provider "kubernetes" {
 
 module "dev_eks_ugen" {
   source          = "terraform-aws-modules/eks/aws"
-  cluster_name    = "DEV-EKS-UGen"
+  cluster_name    = local.cluster_name
   cluster_version = "1.16"
-  # subnets         = locals.eks_subnet_ids
   subnets         = concat(data.terraform_remote_state.devVPC.outputs.private_subnets, data.terraform_remote_state.devVPC.outputs.public_subnets)
   vpc_id          = data.terraform_remote_state.devVPC.outputs.vpc_id
 
-  worker_groups = [
-    {
+  tags = {
+    Environment = "dev"
+    pod = "devops"
+    GithubRepo  = "terraform-aws-eks"
+    GithubOrg   = "terraform-aws-modules"
+  }
+
+  node_groups = {
+    example = {
+      desired_capacity = 1
+      max_capacity     = 10
+      min_capacity     = 1
+
       instance_type = "t2.micro"
-      asg_max_size  = 2
+      k8s_labels = {
+        Environment = "test"
+        GithubRepo  = "terraform-aws-eks"
+        GithubOrg   = "terraform-aws-modules"
+      }
+      additional_tags = {
+        ExtraTag = "example"
+      }
     }
-  ]
+  }
+
 }
 
+output "dev_eks_ugen" {
+  value = module.dev_eks_ugen
+}
 
-# module "eks" {
-#   source       = "../.."
-#   cluster_name = local.cluster_name
-#   subnets      = module.vpc.private_subnets
+##########################################################
+# Setup AWS Identity Providers - Managed IAM Role
+# Require external thumbprint.sh to generate CA Thumbprint 
+##########################################################
 
-#   tags = {
-#     Environment = "test"
-#     GithubRepo  = "terraform-aws-eks"
-#     GithubOrg   = "terraform-aws-modules"
-#   }
+data "local_file" "signature_read" {
+    filename = "signature.txt"
+}
 
-#   vpc_id = module.vpc.vpc_id
+output "mysignature" {
+  value = data.local_file.signature_read
+}
 
-#   worker_groups = [
-#     {
-#       name                          = "worker-group-1"
-#       instance_type                 = "t2.small"
-#       additional_userdata           = "echo foo bar"
-#       asg_desired_capacity          = 2
-#       additional_security_group_ids = [aws_security_group.worker_group_mgmt_one.id]
-#     },
-#     {
-#       name                          = "worker-group-2"
-#       instance_type                 = "t2.medium"
-#       additional_userdata           = "echo foo bar"
-#       additional_security_group_ids = [aws_security_group.worker_group_mgmt_two.id]
-#       asg_desired_capacity          = 1
-#     },
-#   ]
+resource "aws_iam_openid_connect_provider" "oidc_eks_ugen" {
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = [data.local_file.signature_read.content]
+  url             = module.dev_eks_ugen.identity.0.oidc.0.issuer
+}
 
-#   worker_additional_security_group_ids = [aws_security_group.all_worker_mgmt.id]
-#   map_roles                            = var.map_roles
-#   map_users                            = var.map_users
-#   map_accounts                         = var.map_accounts
+# resource "aws_iam_openid_connect_provider" "cluster" {
+#   client_id_list  = ["sts.amazonaws.com"]
+#   thumbprint_list = ["${data.external.thumbprint.result.thumbprint}"]
+#   url             = "${data.dev_eks_ugen.this.identity.0.oidc.0.issuer}"
 # }
+
+output "oidc_eks_ugen" {
+  value = aws_iam_openid_connect_provider.oidc_eks_ugen
+}
+
+##########################################################
+# Security Group(SG) for ELB
+# Due to limit of numbers of SG that can be apply to ELB, 
+# all ELB (HTTP/HTTPS) can be shared using the same SG
+##########################################################
+
+resource "aws_security_group" "central_elb_sg" {
+  name        = "eks_ugen_elb_web_traffic"
+  description = "Allow TLS inbound traffic"
+  vpc_id      = data.terraform_remote_state.devVPC.outputs.vpc_id
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    cidr_blocks     = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${local.cluster_name}-ELB-SG"
+  }
+}
+
+output "central_elb_sg" {
+  value = aws_security_group.central_elb_sg
+}
+
