@@ -18,6 +18,16 @@ data "aws_eks_cluster_auth" "cluster" {
   name = module.dev_eks_ugen.cluster_id
 }
 
+data "aws_ami" "worker" {
+  filter {
+    name   = "name"
+    values = ["amazon-eks-node-1.16-v*"]
+  }
+
+  most_recent = true
+  owners      = ["602401143452"] # Amazon EKS AMI Account ID
+}
+
 locals {
   cluster_name       = "dev_eks_ugen"
   private_subnet_ids = data.terraform_remote_state.devVPC.outputs.private_subnets
@@ -48,10 +58,10 @@ module "dev_eks_ugen" {
   }
 
   node_groups = {
-    example = {
-      desired_capacity = 1
+    ugen_nodepool1 = {
+      desired_capacity = 2
+      min_capacity     = 2
       max_capacity     = 10
-      min_capacity     = 1
 
       instance_type = "t2.micro"
       k8s_labels = {
@@ -60,7 +70,7 @@ module "dev_eks_ugen" {
         GithubOrg   = "terraform-aws-modules"
       }
       additional_tags = {
-        ExtraTag = "example"
+        ExtraTag = "nodepool1"
       }
     }
   }
@@ -76,19 +86,27 @@ output "dev_eks_ugen" {
 # Require external thumbprint.sh to generate CA Thumbprint 
 ##########################################################
 
-data "local_file" "signature_read" {
-    filename = "signature.txt"
-}
+# data "local_file" "signature_read" {
+#     filename = "signature.txt"
+# }
 
-output "mysignature" {
-  value = data.local_file.signature_read
-}
+# output "mysignature" {
+#   value = data.local_file.signature_read
+# }
 
-resource "aws_iam_openid_connect_provider" "oidc_eks_ugen" {
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = [data.local_file.signature_read.content]
-  url             = module.dev_eks_ugen.identity.0.oidc.0.issuer
-}
+# resource "aws_iam_openid_connect_provider" "oidc_eks_ugen" {
+#   client_id_list  = ["sts.amazonaws.com"]
+#   thumbprint_list = [data.local_file.signature_read.content]
+#   # url             = module.dev_eks_ugen.identity.0.oidc.0.issuer
+#   url             = module.dev_eks_ugen.oidc_eks_ugen.identity.0.oidc.0.issuer
+# }
+
+# resource "aws_iam_openid_connect_provider" "oidc_eks_mgen_ai" {
+#   client_id_list  = ["sts.amazonaws.com"]
+#   url             = module.eks_mgen_ai.cluster_oidc_issuer
+#   thumbprint_list = [data.local_file.signature_read.content]
+# }
+
 
 # resource "aws_iam_openid_connect_provider" "cluster" {
 #   client_id_list  = ["sts.amazonaws.com"]
@@ -96,9 +114,9 @@ resource "aws_iam_openid_connect_provider" "oidc_eks_ugen" {
 #   url             = "${data.dev_eks_ugen.this.identity.0.oidc.0.issuer}"
 # }
 
-output "oidc_eks_ugen" {
-  value = aws_iam_openid_connect_provider.oidc_eks_ugen
-}
+# output "oidc_eks_ugen" {
+#   value = aws_iam_openid_connect_provider.oidc_eks_ugen
+# }
 
 ##########################################################
 # Security Group(SG) for ELB
@@ -106,38 +124,52 @@ output "oidc_eks_ugen" {
 # all ELB (HTTP/HTTPS) can be shared using the same SG
 ##########################################################
 
-resource "aws_security_group" "central_elb_sg" {
-  name        = "eks_ugen_elb_web_traffic"
-  description = "Allow TLS inbound traffic"
-  vpc_id      = data.terraform_remote_state.devVPC.outputs.vpc_id
+# resource "aws_security_group" "central_elb_sg" {
+#   name        = "eks_ugen_elb_web_traffic"
+#   description = "Allow TLS inbound traffic"
+#   vpc_id      = data.terraform_remote_state.devVPC.outputs.vpc_id
 
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+#   ingress {
+#     from_port   = 443
+#     to_port     = 443
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
 
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+#   ingress {
+#     from_port   = 80
+#     to_port     = 80
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
 
-  egress {
-    from_port       = 0
-    to_port         = 0
-    protocol        = "-1"
-    cidr_blocks     = ["0.0.0.0/0"]
-  }
+#   egress {
+#     from_port       = 0
+#     to_port         = 0
+#     protocol        = "-1"
+#     cidr_blocks     = ["0.0.0.0/0"]
+#   }
 
-  tags = {
-    Name = "${local.cluster_name}-ELB-SG"
-  }
-}
+#   tags = {
+#     Name = "${local.cluster_name}-ELB-SG"
+#   }
+# }
 
-output "central_elb_sg" {
-  value = aws_security_group.central_elb_sg
-}
+# output "central_elb_sg" {
+#   value = aws_security_group.central_elb_sg
+# }
+
+# resource "aws_security_group_rule" "Elb_Join_" {
+#   description              = "Allow node to communicate with ELB"
+#   from_port                = 0
+#   protocol                 = "tcp"
+#   security_group_id        = module.dev_eks_ugen.worker_security_group_id
+#   source_security_group_id = aws_security_group.central_elb_sg.id
+#   to_port                  = 65535
+#   type                     = "ingress"
+
+#   depends_on = [
+#     module.dev_eks_ugen,
+#   ]
+# }
 
