@@ -62,6 +62,8 @@ module "dev_eks_ugen" {
       desired_capacity = 2
       min_capacity     = 2
       max_capacity     = 10
+      disk_size        = 50
+      subnet_ids       = data.terraform_remote_state.devVPC.outputs.private_subnets
 
       instance_type = "t2.micro"
       k8s_labels = {
@@ -92,37 +94,24 @@ output "dev_eks_ugen" {
 # Require external thumbprint.sh to generate CA Thumbprint 
 ##########################################################
 
-# data "local_file" "signature_read" {
-#     filename = "signature.txt"
-# }
+data "local_file" "signature_read" {
+    filename = "signature.txt"
+}
 
-# output "mysignature" {
-#   value = data.local_file.signature_read
-# }
+output "mysignature" {
+  value = data.local_file.signature_read
+}
 
-# resource "aws_iam_openid_connect_provider" "oidc_eks_ugen" {
-#   client_id_list  = ["sts.amazonaws.com"]
-#   thumbprint_list = [data.local_file.signature_read.content]
-#   # url             = module.dev_eks_ugen.identity.0.oidc.0.issuer
-#   url             = module.dev_eks_ugen.oidc_eks_ugen.identity.0.oidc.0.issuer
-# }
+# Enabling IAM Roles for Service Accounts
+resource "aws_iam_openid_connect_provider" "oidc_eks_ugen" {
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = [data.local_file.signature_read.content]
+  url             = module.dev_eks_ugen.cluster_oidc_issuer_url
+}
 
-# resource "aws_iam_openid_connect_provider" "oidc_eks_mgen_ai" {
-#   client_id_list  = ["sts.amazonaws.com"]
-#   url             = module.eks_mgen_ai.cluster_oidc_issuer
-#   thumbprint_list = [data.local_file.signature_read.content]
-# }
-
-
-# resource "aws_iam_openid_connect_provider" "cluster" {
-#   client_id_list  = ["sts.amazonaws.com"]
-#   thumbprint_list = ["${data.external.thumbprint.result.thumbprint}"]
-#   url             = "${data.dev_eks_ugen.this.identity.0.oidc.0.issuer}"
-# }
-
-# output "oidc_eks_ugen" {
-#   value = aws_iam_openid_connect_provider.oidc_eks_ugen
-# }
+output "oidc_eks_ugen" {
+  value = aws_iam_openid_connect_provider.oidc_eks_ugen
+}
 
 ##########################################################
 # Security Group(SG) for ELB
