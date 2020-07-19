@@ -57,13 +57,14 @@ module "dev_eks_ugen" {
     GithubOrg   = "terraform-aws-modules"
   }
 
+  # node_groups = []
   node_groups = {
     ugen_nodepool1 = {
       desired_capacity = 2
       min_capacity     = 2
       max_capacity     = 10
       disk_size        = 50
-      subnet_ids       = data.terraform_remote_state.devVPC.outputs.private_subnets
+      # subnet_ids       = local.private_subnet_ids
 
       instance_type = "t2.micro"
       k8s_labels = {
