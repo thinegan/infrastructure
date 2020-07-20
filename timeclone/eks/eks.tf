@@ -64,7 +64,7 @@ module "dev_eks_ugen" {
       min_capacity     = 2
       max_capacity     = 10
       disk_size        = 50
-      # subnet_ids       = local.private_subnet_ids
+      subnets          = local.private_subnet_ids
 
       instance_type = "t2.micro"
       k8s_labels = {
