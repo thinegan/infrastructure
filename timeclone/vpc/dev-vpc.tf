@@ -44,10 +44,12 @@ module "vpc" {
   }
 
   public_subnet_tags = {
+    "kubernetes.io/cluster/dev_eks_ugen" = "shared"
     "kubernetes.io/role/elb" = "1"
   }
 
   private_subnet_tags = {
+    "kubernetes.io/cluster/dev_eks_ugen" = "shared"
     "kubernetes.io/role/internal-elb" = "1"
   }
 
