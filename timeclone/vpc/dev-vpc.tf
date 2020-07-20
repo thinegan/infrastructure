@@ -64,6 +64,10 @@ output "devVPC_id" {
   value = module.vpc.vpc_id
 }
 
+output "devVPC_cidr" {
+  value = module.vpc.vpc_cidr_block
+}
+
 
 # NACL Rules
 locals {

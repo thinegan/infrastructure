@@ -75,6 +75,7 @@ module "dev_eks_ugen" {
       }
       additional_tags = {
         ExtraTag = "nodepool1"
+        Name     = local.cluster_name
       }
     }
   }
@@ -179,7 +180,7 @@ resource "aws_security_group" "all_worker_mgmt" {
     protocol  = "tcp"
 
     cidr_blocks = [
-      "10.38.0.0/16",
+      data.terraform_remote_state.devVPC.outputs.devVPC_cidr,
     ]
   }
 }
