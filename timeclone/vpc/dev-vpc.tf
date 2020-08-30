@@ -1,6 +1,6 @@
-provider "aws" {
-  region = "us-east-1"
-}
+#provider "aws" {
+#  region = "us-east-1"
+#}
 
 data "aws_security_group" "default" {
   name   = "default"
@@ -64,6 +64,10 @@ output "devVPC_id" {
   value = module.vpc.vpc_id
 }
 
+output "devVPC_cidr" {
+  value = module.vpc.vpc_cidr_block
+}
+
 
 # NACL Rules
 locals {
@@ -77,14 +81,30 @@ locals {
         protocol    = "tcp"
         cidr_block  = "0.0.0.0/0"
       },
+      { #Ephemeral Ports -UDP
+        rule_number = 910
+        rule_action = "allow"
+        from_port   = 1024
+        to_port     = 65535
+        protocol    = "udp"
+        cidr_block  = "0.0.0.0/0"
+      },
     ]
     default_outbound = [
       { #Ephemeral Ports -TCP
         rule_number = 900
         rule_action = "allow"
-        from_port   = 32768
+        from_port   = 1024
         to_port     = 65535
         protocol    = "tcp"
+        cidr_block  = "0.0.0.0/0"
+      },
+      { #Ephemeral Ports -UDP
+        rule_number = 910
+        rule_action = "allow"
+        from_port   = 1024
+        to_port     = 65535
+        protocol    = "udp"
         cidr_block  = "0.0.0.0/0"
       },
     ]

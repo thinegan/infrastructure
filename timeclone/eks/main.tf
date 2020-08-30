@@ -1,6 +1,6 @@
 // AWS Provider
 provider "aws" {
-  version  = "2.67"
+  version  = "~> 2.0"
   region   = "us-east-1"
 }
 

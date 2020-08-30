@@ -9,14 +9,9 @@ data "terraform_remote_state" "devVPC" {
   }
 }
 
+data "aws_caller_identity" "current" {}
 
-data "aws_eks_cluster" "cluster" {
-  name = module.dev_eks_ugen.cluster_id
-}
-
-data "aws_eks_cluster_auth" "cluster" {
-  name = module.dev_eks_ugen.cluster_id
-}
+data "aws_region" "current" {}
 
 data "aws_ami" "worker" {
   filter {
@@ -35,6 +30,14 @@ locals {
   eks_subnet_ids     = concat(local.public_subnet_ids, local.private_subnet_ids)
 }
 
+data "aws_eks_cluster" "cluster" {
+  name = module.dev_eks_ugen.cluster_id
+}
+
+data "aws_eks_cluster_auth" "cluster" {
+  name = module.dev_eks_ugen.cluster_id
+}
+
 provider "kubernetes" {
   host                   = data.aws_eks_cluster.cluster.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
@@ -47,7 +50,7 @@ module "dev_eks_ugen" {
   source          = "terraform-aws-modules/eks/aws"
   cluster_name    = local.cluster_name
   cluster_version = "1.16"
-  subnets         = concat(data.terraform_remote_state.devVPC.outputs.private_subnets, data.terraform_remote_state.devVPC.outputs.public_subnets)
+  subnets         = local.eks_subnet_ids
   vpc_id          = data.terraform_remote_state.devVPC.outputs.vpc_id
 
   tags = {
@@ -57,27 +60,45 @@ module "dev_eks_ugen" {
     GithubOrg   = "terraform-aws-modules"
   }
 
-  # node_groups = []
-  node_groups = {
-    ugen_nodepool1 = {
-      desired_capacity = 2
-      min_capacity     = 2
-      max_capacity     = 10
-      disk_size        = 50
-      # subnet_ids       = local.private_subnet_ids
-
-      instance_type = "t2.micro"
-      k8s_labels = {
-        Environment = "test"
-        GithubRepo  = "terraform-aws-eks"
-        GithubOrg   = "terraform-aws-modules"
-        Name        = local.cluster_name
-      }
-      additional_tags = {
-        ExtraTag = "nodepool1"
-      }
+# Spot
+  worker_groups_launch_template = [
+    {
+      name                    = "spot-1"
+      override_instance_types = ["t2.medium", "t3.medium"]
+      key_name                = "cycle1"
+      spot_instance_pools     = 2
+      asg_max_size            = 3
+      asg_desired_capacity    = 2
+      kubelet_extra_args      = "--node-labels=node.kubernetes.io/lifecycle=spot"
+      disk_size               = 50
+      subnets                 = local.private_subnet_ids
     }
-  }
+  ]
+
+# # OnDemand
+# #   # node_groups = []
+# #   node_groups = {
+# #     ugen_nodepool1 = {
+# #       desired_capacity = 2
+# #       min_capacity     = 2
+# #       max_capacity     = 10
+# #       disk_size        = 50
+# #       subnets          = local.private_subnet_ids
+
+# # #      instance_type = "t2.micro"
+# #       instance_type = "t2.medium"
+# #       k8s_labels = {
+# #         Environment = "test"
+# #         GithubRepo  = "terraform-aws-eks"
+# #         GithubOrg   = "terraform-aws-modules"
+# #         Name        = local.cluster_name
+# #       }
+# #       additional_tags = {
+# #         ExtraTag = "nodepool1"
+# #         Name     = local.cluster_name
+# #       }
+# #     }
+# #   }
 
   worker_additional_security_group_ids = [aws_security_group.all_worker_mgmt.id]
   map_roles                            = var.map_roles
@@ -88,6 +109,11 @@ module "dev_eks_ugen" {
 
 output "dev_eks_ugen" {
   value = module.dev_eks_ugen
+}
+
+output "config_map_aws_auth" {
+  description = "A kubernetes configuration to authenticate to this EKS cluster."
+  value       = module.dev_eks_ugen.config_map_aws_auth
 }
 
 ##########################################################
@@ -121,7 +147,7 @@ output "oidc_eks_ugen" {
 ##########################################################
 
 resource "aws_security_group" "central_elb_sg" {
-  name        = "eks_ugen_elb_web_traffic"
+  name        = "eks_sgen_elb_web_traffic"
   description = "Allow TLS inbound traffic"
   vpc_id      = data.terraform_remote_state.devVPC.outputs.vpc_id
 
@@ -169,6 +195,20 @@ resource "aws_security_group_rule" "Elb_Join_" {
   ]
 }
 
+resource "aws_security_group_rule" "Elb_Join_cluster_primary_sgid" {
+  description              = "Allow Primary Cluster to communicate with ELB"
+  from_port                = 0
+  protocol                 = "tcp"
+  security_group_id        = module.dev_eks_ugen.cluster_primary_security_group_id
+  source_security_group_id = aws_security_group.central_elb_sg.id
+  to_port                  = 65535
+  type                     = "ingress"
+
+  depends_on = [
+    module.dev_eks_ugen,
+  ]
+}
+
 resource "aws_security_group" "all_worker_mgmt" {
   name_prefix = "all_worker_management"
   vpc_id      = data.terraform_remote_state.devVPC.outputs.vpc_id
@@ -179,7 +219,7 @@ resource "aws_security_group" "all_worker_mgmt" {
     protocol  = "tcp"
 
     cidr_blocks = [
-      "10.38.0.0/16",
+      data.terraform_remote_state.devVPC.outputs.devVPC_cidr,
     ]
   }
 }
