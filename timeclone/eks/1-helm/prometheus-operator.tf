@@ -3,25 +3,26 @@
 #   namespace  = "monitoring"
 #   chart      = "prometheus-operator"
 #   repository = data.helm_repository.stable.metadata.0.name
-#   version    = "8.10.0"
+#   # version    = "8.10.0"
+#   version    = "8.14.0"
 
-#   values = [
-#     "${file("values/prometheus-operator-values.yaml")}"
-#   ]
+#   # values = [
+#   #   "${file("values/prometheus-operator-values.yaml")}"
+#   # ]
 
 #   set {
 #     name  = "prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.storageClassName"
 #     value = kubernetes_storage_class.prometheus_operator.metadata.0.name
 #   }
 
-#   set {
-#     name  = "prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage"
-#     value = "60Gi"
-#   }
+#   # set {
+#   #   name  = "prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage"
+#   #   value = "60Gi"
+#   # }
 
 #   set {
 #     name  = "grafana.ingress.annotations.alb\\.ingress\\.kubernetes\\.io/security-groups"
-#     value = data.terraform_remote_state.eks_mgen_ai.outputs.central_elb_sg.id
+#     value = data.terraform_remote_state.dev_eks_ugen.outputs.central_elb_sg.id
 #   }
 
 #   set {

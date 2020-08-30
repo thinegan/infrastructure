@@ -76,7 +76,7 @@ grafana:
       app: "cluster-monitoring-grafana"
 
     hosts: 
-      - staging-grafana-ai.crytera.com
+      - staging-grafana.crytera.com
 
       # hosts: []
 
