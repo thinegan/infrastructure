@@ -15,3 +15,8 @@ output "public_subnets" {
   value       = module.vpc.public_subnets
 }
 
+# Cidr block
+output "vpc_cidr_block" {
+  description = "List VPC Cidr Block"
+  value       = module.vpc.vpc_cidr_block
+}
