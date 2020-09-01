@@ -16,7 +16,7 @@ data "aws_region" "current" {}
 data "aws_ami" "worker" {
   filter {
     name   = "name"
-    values = ["amazon-eks-node-1.16-v*"]
+    values = ["amazon-eks-node-1.15-v*"]
   }
 
   most_recent = true
@@ -49,7 +49,7 @@ provider "kubernetes" {
 module "dev_eks_ugen" {
   source          = "terraform-aws-modules/eks/aws"
   cluster_name    = local.cluster_name
-  cluster_version = "1.16"
+  cluster_version = "1.15"
   subnets         = local.eks_subnet_ids
   vpc_id          = data.terraform_remote_state.devVPC.outputs.vpc_id
 
@@ -60,45 +60,43 @@ module "dev_eks_ugen" {
     GithubOrg   = "terraform-aws-modules"
   }
 
-# Spot
-  worker_groups_launch_template = [
-    {
-      name                    = "spot-1"
-      override_instance_types = ["t2.medium", "t3.medium"]
-      key_name                = "cycle1"
-      spot_instance_pools     = 2
-      asg_max_size            = 3
-      asg_desired_capacity    = 2
-      kubelet_extra_args      = "--node-labels=node.kubernetes.io/lifecycle=spot"
-      disk_size               = 50
-      subnets                 = local.private_subnet_ids
+# # Spot
+#   worker_groups_launch_template = [
+#     {
+#       name                    = "spot-1"
+#       override_instance_types = ["t2.medium", "t3.medium"]
+#       key_name                = "cycle1"
+#       spot_instance_pools     = 2
+#       asg_max_size            = 3
+#       asg_desired_capacity    = 2
+#       kubelet_extra_args      = "--node-labels=node.kubernetes.io/lifecycle=spot"
+#       disk_size               = 50
+#       subnets                 = local.private_subnet_ids
+#     }
+#   ]
+
+# OnDemand
+  node_groups = {
+    ugen_nodepool1 = {
+      desired_capacity = 2
+      min_capacity     = 2
+      max_capacity     = 10
+      disk_size        = 50
+      subnets          = local.private_subnet_ids
+
+      instance_type = "t2.medium"
+      k8s_labels = {
+        Environment = "development"
+        GithubRepo  = "terraform-aws-eks"
+        GithubOrg   = "terraform-aws-modules"
+        Name        = local.cluster_name
+      }
+      additional_tags = {
+        ExtraTag = "nodepool1"
+        Name     = local.cluster_name
+      }
     }
-  ]
-
-# # OnDemand
-# #   # node_groups = []
-# #   node_groups = {
-# #     ugen_nodepool1 = {
-# #       desired_capacity = 2
-# #       min_capacity     = 2
-# #       max_capacity     = 10
-# #       disk_size        = 50
-# #       subnets          = local.private_subnet_ids
-
-# # #      instance_type = "t2.micro"
-# #       instance_type = "t2.medium"
-# #       k8s_labels = {
-# #         Environment = "test"
-# #         GithubRepo  = "terraform-aws-eks"
-# #         GithubOrg   = "terraform-aws-modules"
-# #         Name        = local.cluster_name
-# #       }
-# #       additional_tags = {
-# #         ExtraTag = "nodepool1"
-# #         Name     = local.cluster_name
-# #       }
-# #     }
-# #   }
+  }
 
   worker_additional_security_group_ids = [aws_security_group.all_worker_mgmt.id]
   map_roles                            = var.map_roles
