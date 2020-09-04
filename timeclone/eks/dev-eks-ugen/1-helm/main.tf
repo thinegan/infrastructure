@@ -10,7 +10,7 @@ data "terraform_remote_state" "dev_eks_ugen" {
     bucket         = "terraform-staging-state-storage"
     dynamodb_table = "terraform-staging-state-locks"
     region         = "us-east-1"
-    key            = "timeclone/eks/terraform.tfstate"
+    key            = "timeclone/eks/dev-eks-ugen/terraform.tfstate"
   }
 }
 
@@ -53,7 +53,7 @@ terraform {
     bucket         = "terraform-staging-state-storage"
     dynamodb_table = "terraform-staging-state-locks"
     region         = "us-east-1"
-    key            = "timeclone/eks/1-helm/releases-0/terraform.tfstate"
+    key            = "timeclone/eks/dev-eks-ugen/1-helm/releases-0/terraform.tfstate"
   }
 }
 
