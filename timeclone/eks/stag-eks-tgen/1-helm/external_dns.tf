@@ -3,7 +3,7 @@ resource "helm_release" "dns_external_staging" {
   namespace  = "kube-system"
   chart      = "external-dns"
   repository = data.helm_repository.stable.metadata.0.name
-  version    = "2.19.1"
+  version    = "2.24.1"
 
   values = [
     "${file("values/external-dns-value.yaml")}"

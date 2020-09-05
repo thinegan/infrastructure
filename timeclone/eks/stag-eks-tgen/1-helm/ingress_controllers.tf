@@ -4,6 +4,7 @@ resource "helm_release" "alb_ingress_controller" {
   chart      = "aws-alb-ingress-controller"
   repository = data.helm_repository.incubator.metadata.0.name
   version    = "0.1.14"
+# Note : ver 1.0.2 will not support rbac.serviceAccountAnnotations
 
   set {
     name  = "awsRegion"

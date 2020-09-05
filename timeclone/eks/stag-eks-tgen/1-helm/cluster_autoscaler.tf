@@ -2,8 +2,8 @@ resource "helm_release" "cluster_autoscaler" {
   name       = "cluster-autoscaler"
   namespace  = "kube-system"
   chart      = "cluster-autoscaler"
-  version    = "7.2.0"
   repository = data.helm_repository.stable.metadata.0.name
+  version    = "8.0.0"
 
   set {
     name  = "autoDiscovery.clusterName"

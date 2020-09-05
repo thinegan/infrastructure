@@ -2,8 +2,8 @@ resource "helm_release" "kubernetes_dashboard" {
   name       = "kubernetes-dashboard"
   namespace  = "kube-system"
   chart      = "kubernetes-dashboard"
-  version    = "1.10.1"
   repository = data.helm_repository.stable.metadata.0.name
+  version    = "1.10.1"
 
   values = [
     "${file("values/dashboard-values.yaml")}"

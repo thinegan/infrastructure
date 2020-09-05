@@ -3,7 +3,7 @@ resource "helm_release" "prometheus_operator" {
   namespace  = "monitoring"
   chart      = "prometheus-operator"
   repository = data.helm_repository.stable.metadata.0.name
-  version    = "8.10.0"
+  version    = "9.1.2"
 
   values = [
     "${file("values/prometheus-operator-values.yaml")}"
