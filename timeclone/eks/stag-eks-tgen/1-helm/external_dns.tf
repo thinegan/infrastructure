@@ -2,7 +2,7 @@ resource "helm_release" "dns_external_staging" {
   name       = "dns-external-staging"
   namespace  = "kube-system"
   chart      = "external-dns"
-  repository = data.helm_repository.stable.metadata.0.name
+  repository = data.helm_repository.bitnami.metadata.0.name
   version    = "2.24.1"
 
   values = [
