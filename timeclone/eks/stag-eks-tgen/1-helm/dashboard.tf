@@ -16,7 +16,7 @@ resource "helm_release" "kubernetes_dashboard" {
 
   set {
     name  = "ingress.annotations.alb\\.ingress\\.kubernetes\\.io/security-groups"
-    value = data.terraform_remote_state.dev_eks_ugen.outputs.central_elb_sg.id
+    value = data.terraform_remote_state.stag_eks_tgen.outputs.central_elb_sg.id
   }
 
   set {

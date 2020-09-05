@@ -16,7 +16,7 @@ data "aws_region" "current" {}
 data "aws_ami" "worker" {
   filter {
     name   = "name"
-    values = ["amazon-eks-node-1.15-v*"]
+    values = ["amazon-eks-node-1.17-v*"]
   }
 
   most_recent = true
@@ -24,18 +24,18 @@ data "aws_ami" "worker" {
 }
 
 locals {
-  cluster_name       = "dev_eks_ugen"
+  cluster_name       = "stag-eks-tgen"
   private_subnet_ids = data.terraform_remote_state.devVPC.outputs.private_subnets
   public_subnet_ids  = data.terraform_remote_state.devVPC.outputs.public_subnets
   eks_subnet_ids     = concat(local.public_subnet_ids, local.private_subnet_ids)
 }
 
 data "aws_eks_cluster" "cluster" {
-  name = module.dev_eks_ugen.cluster_id
+  name = module.stag_eks_tgen.cluster_id
 }
 
 data "aws_eks_cluster_auth" "cluster" {
-  name = module.dev_eks_ugen.cluster_id
+  name = module.stag_eks_tgen.cluster_id
 }
 
 provider "kubernetes" {
@@ -46,16 +46,16 @@ provider "kubernetes" {
   version                = "~> 1.9"
 }
 
-module "dev_eks_ugen" {
+module "stag_eks_tgen" {
   source          = "terraform-aws-modules/eks/aws"
   cluster_name    = local.cluster_name
-  cluster_version = "1.15"
+  cluster_version = "1.17"
   subnets         = local.eks_subnet_ids
   vpc_id          = data.terraform_remote_state.devVPC.outputs.vpc_id
 
   tags = {
     Environment = "dev"
-    pod = "devops"
+    pod         = "devops"
     GithubRepo  = "terraform-aws-eks"
     GithubOrg   = "terraform-aws-modules"
   }
@@ -77,12 +77,13 @@ module "dev_eks_ugen" {
 
 # OnDemand
   node_groups = {
-    ugen_nodepool1 = {
+    tgen_nodepool1 = {
       desired_capacity = 2
       min_capacity     = 2
       max_capacity     = 10
       disk_size        = 50
       subnets          = local.private_subnet_ids
+      key_name         = "cycle1"
 
       instance_type = "t2.medium"
       k8s_labels = {
@@ -105,13 +106,13 @@ module "dev_eks_ugen" {
 
 }
 
-output "dev_eks_ugen" {
-  value = module.dev_eks_ugen
+output "stag_eks_tgen" {
+  value = module.stag_eks_tgen
 }
 
 output "config_map_aws_auth" {
   description = "A kubernetes configuration to authenticate to this EKS cluster."
-  value       = module.dev_eks_ugen.config_map_aws_auth
+  value       = module.stag_eks_tgen.config_map_aws_auth
 }
 
 ##########################################################
@@ -128,14 +129,14 @@ output "mysignature" {
 }
 
 # Enabling IAM Roles for Service Accounts
-resource "aws_iam_openid_connect_provider" "oidc_eks_ugen" {
+resource "aws_iam_openid_connect_provider" "oidc_eks_tgen" {
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = [data.local_file.signature_read.content]
-  url             = module.dev_eks_ugen.cluster_oidc_issuer_url
+  url             = module.stag_eks_tgen.cluster_oidc_issuer_url
 }
 
-output "oidc_eks_ugen" {
-  value = aws_iam_openid_connect_provider.oidc_eks_ugen
+output "oidc_eks_tgen" {
+  value = aws_iam_openid_connect_provider.oidc_eks_tgen
 }
 
 ##########################################################
@@ -145,7 +146,7 @@ output "oidc_eks_ugen" {
 ##########################################################
 
 resource "aws_security_group" "central_elb_sg" {
-  name        = "eks_sgen_elb_web_traffic"
+  name        = "eks_tgen_elb_web_traffic"
   description = "Allow TLS inbound traffic"
   vpc_id      = data.terraform_remote_state.devVPC.outputs.vpc_id
 
@@ -183,13 +184,13 @@ resource "aws_security_group_rule" "Elb_Join_" {
   description              = "Allow node to communicate with ELB"
   from_port                = 0
   protocol                 = "tcp"
-  security_group_id        = module.dev_eks_ugen.worker_security_group_id
+  security_group_id        = module.stag_eks_tgen.worker_security_group_id
   source_security_group_id = aws_security_group.central_elb_sg.id
   to_port                  = 65535
   type                     = "ingress"
 
   depends_on = [
-    module.dev_eks_ugen,
+    module.stag_eks_tgen,
   ]
 }
 
@@ -197,13 +198,13 @@ resource "aws_security_group_rule" "Elb_Join_cluster_primary_sgid" {
   description              = "Allow Primary Cluster to communicate with ELB"
   from_port                = 0
   protocol                 = "tcp"
-  security_group_id        = module.dev_eks_ugen.cluster_primary_security_group_id
+  security_group_id        = module.stag_eks_tgen.cluster_primary_security_group_id
   source_security_group_id = aws_security_group.central_elb_sg.id
   to_port                  = 65535
   type                     = "ingress"
 
   depends_on = [
-    module.dev_eks_ugen,
+    module.stag_eks_tgen,
   ]
 }
 

@@ -9,18 +9,18 @@ terraform {
     bucket         = "terraform-staging-state-storage"
     dynamodb_table = "terraform-staging-state-locks"
     region         = "us-east-1"
-    key            = "timeclone/eks/dev-eks-ugen/0-kubernetes/terraform.tfstate"
+    key            = "timeclone/eks/stag-eks-tgen/0-kubernetes/terraform.tfstate"
   }
 }
 
-data "terraform_remote_state" "dev_eks_ugen" {
+data "terraform_remote_state" "stag_eks_tgen" {
   backend = "s3"
   config = {
     encrypt        = true
     bucket         = "terraform-staging-state-storage"
     dynamodb_table = "terraform-staging-state-locks"
     region         = "us-east-1"
-    key            = "timeclone/eks/dev-eks-ugen/terraform.tfstate"
+    key            = "timeclone/eks/stag-eks-tgen/terraform.tfstate"
   }
 }
 

@@ -24,13 +24,13 @@ data "aws_iam_policy_document" "oidc_autoscaler_assume_role" {
     principals {
       type = "Federated"  
       identifiers = [
-        "${aws_iam_openid_connect_provider.oidc_eks_ugen.arn}",
+        "${aws_iam_openid_connect_provider.oidc_eks_tgen.arn}",
       ]
     }
 
     condition {
       test     = "StringEquals"
-      variable = "${aws_iam_openid_connect_provider.oidc_eks_ugen.url}:sub"
+      variable = "${aws_iam_openid_connect_provider.oidc_eks_tgen.url}:sub"
 
       values = [
         "system:serviceaccount:kube-system:cluster-autoscaler-aws-cluster-autoscaler"
@@ -40,18 +40,18 @@ data "aws_iam_policy_document" "oidc_autoscaler_assume_role" {
 }
 
 resource "aws_iam_role" "iam_role_oidc_autoscaler" {
-  name                = "dev-eks-ugen-oidc-autoscaler"
+  name                = "dev-eks-tgen-oidc-autoscaler"
   assume_role_policy  = data.aws_iam_policy_document.oidc_autoscaler_assume_role.json
 }
 
 resource "aws_iam_policy" "iam_policy_oidc_autoscaler" {
-    name              = "dev-eks-ugen-oidc-autoscaler"
+    name              = "dev-eks-tgen-oidc-autoscaler"
     description       = "An autoscaler policy"
     policy            = data.aws_iam_policy_document.worker_cluster_autoscaler.json
 }
 
 resource "aws_iam_policy_attachment" "iam_attachment_oidc_autoscaler" {
-    name              = "dev-eks-ugen-oidc-autoscaler"
+    name              = "dev-eks-tgen-oidc-autoscaler"
     policy_arn        = aws_iam_policy.iam_policy_oidc_autoscaler.arn
     roles             = [aws_iam_role.iam_role_oidc_autoscaler.name]
 }

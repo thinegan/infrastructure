@@ -17,7 +17,7 @@ resource "helm_release" "alb_ingress_controller" {
 
   set {
     name  = "clusterName"
-    value = data.terraform_remote_state.dev_eks_ugen.outputs.dev_eks_ugen.cluster_id
+    value = data.terraform_remote_state.stag_eks_tgen.outputs.stag_eks_tgen.cluster_id
   }
 
   set {
@@ -27,7 +27,7 @@ resource "helm_release" "alb_ingress_controller" {
 
   set {
     name  = "rbac.serviceAccountAnnotations.eks\\.amazonaws\\.com/role-arn"
-    value = data.terraform_remote_state.dev_eks_ugen.outputs.oidc_alb_ingress_controller_role.arn
+    value = data.terraform_remote_state.stag_eks_tgen.outputs.oidc_alb_ingress_controller_role.arn
   }
 
   depends_on = [

@@ -16,7 +16,7 @@ resource "helm_release" "dns_external_staging" {
 
   set {
     name  = "rbac.serviceAccountAnnotations.eks\\.amazonaws\\.com/role-arn"
-    value = data.terraform_remote_state.dev_eks_ugen.outputs.oidc_external_dns_role.arn
+    value = data.terraform_remote_state.stag_eks_tgen.outputs.oidc_external_dns_role.arn
   }
 
   depends_on = [

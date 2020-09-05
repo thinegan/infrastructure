@@ -4,9 +4,9 @@ locals {
   ]
 }
 
-resource "kubernetes_cluster_role_binding" "dev_eks_ugen_admin" {
+resource "kubernetes_cluster_role_binding" "dev_eks_tgen_admin" {
   metadata {
-    name = "dev-eks-ugen-admin"
+    name = "dev-eks-tgen-admin"
   }
 
   role_ref {

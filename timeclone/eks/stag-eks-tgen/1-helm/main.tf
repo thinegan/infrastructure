@@ -3,14 +3,14 @@ provider "aws" {
   region   = "us-east-1"
 }
 
-data "terraform_remote_state" "dev_eks_ugen" {
+data "terraform_remote_state" "stag_eks_tgen" {
   backend = "s3"
   config = {
     encrypt        = true
     bucket         = "terraform-staging-state-storage"
     dynamodb_table = "terraform-staging-state-locks"
     region         = "us-east-1"
-    key            = "timeclone/eks/dev-eks-ugen/terraform.tfstate"
+    key            = "timeclone/eks/stag-eks-tgen/terraform.tfstate"
   }
 }
 
@@ -53,17 +53,17 @@ terraform {
     bucket         = "terraform-staging-state-storage"
     dynamodb_table = "terraform-staging-state-locks"
     region         = "us-east-1"
-    key            = "timeclone/eks/dev-eks-ugen/1-helm/releases-0/terraform.tfstate"
+    key            = "timeclone/eks/stag-eks-tgen/1-helm/releases-0/terraform.tfstate"
   }
 }
 
 
 data "aws_eks_cluster" "staging" {
-  name = data.terraform_remote_state.dev_eks_ugen.outputs.dev_eks_ugen.cluster_id
+  name = data.terraform_remote_state.stag_eks_tgen.outputs.stag_eks_tgen.cluster_id
 }
 
 data "aws_eks_cluster_auth" "staging" {
-  name = data.terraform_remote_state.dev_eks_ugen.outputs.dev_eks_ugen.cluster_id
+  name = data.terraform_remote_state.stag_eks_tgen.outputs.stag_eks_tgen.cluster_id
 }
 
 # NOTE: Takes sometimes for the kubernetes provider to work (DNS Propagation)

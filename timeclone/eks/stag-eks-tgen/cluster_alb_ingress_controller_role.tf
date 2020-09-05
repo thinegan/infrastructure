@@ -83,13 +83,13 @@ data "aws_iam_policy_document" "oidc_alb_ingress_controller_assume_role" {
     principals {
       type = "Federated"  
       identifiers = [
-        "${aws_iam_openid_connect_provider.oidc_eks_ugen.arn}",
+        "${aws_iam_openid_connect_provider.oidc_eks_tgen.arn}",
       ]
     }
 
     condition {
       test     = "StringEquals"
-      variable = "${aws_iam_openid_connect_provider.oidc_eks_ugen.url}:sub"
+      variable = "${aws_iam_openid_connect_provider.oidc_eks_tgen.url}:sub"
 
       values = [
         "system:serviceaccount:kube-system:alb-ingress-controller-aws-alb-ingress-controller"
@@ -100,18 +100,18 @@ data "aws_iam_policy_document" "oidc_alb_ingress_controller_assume_role" {
 
 
 resource "aws_iam_role" "iam_role_oidc_alb_ingress_controller" {
-  name                = "dev-eks-ugen-oidc-alb-ingress-controller"
+  name                = "dev-eks-tgen-oidc-alb-ingress-controller"
   assume_role_policy  = data.aws_iam_policy_document.oidc_alb_ingress_controller_assume_role.json
 }
 
 resource "aws_iam_policy" "iam_policy_oidc_alb_ingress_controller" {
-    name              = "dev-eks-ugen-oidc-alb-ingress-controller"
-    description       = "An example policy"
+    name              = "dev-eks-tgen-oidc-alb-ingress-controller"
+    description       = "ALB ingress controller policy"
     policy            = data.aws_iam_policy_document.worker_cluster_alb_ingress_controller.json
 }
 
 resource "aws_iam_policy_attachment" "iam_attachment_oidc_alb_ingress_controller" {
-    name              = "dev-eks-ugen-oidc-alb-ingress-controller"
+    name              = "dev-eks-tgen-oidc-alb-ingress-controller"
     policy_arn        = aws_iam_policy.iam_policy_oidc_alb_ingress_controller.arn
     roles             = [aws_iam_role.iam_role_oidc_alb_ingress_controller.name]
 }
