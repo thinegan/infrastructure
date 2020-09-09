@@ -8,6 +8,11 @@ data "helm_repository" "bitnami" {
   url  = "https://charts.bitnami.com/bitnami"
 }
 
+data "helm_repository" "kubernetes-dashboard" {
+  name = "kubernetes-dashboard"
+  url  = "https://kubernetes.github.io/dashboard"
+}
+
 data "helm_repository" "incubator" {
   name = "incubator"
   url  = "https://kubernetes-charts-incubator.storage.googleapis.com"
