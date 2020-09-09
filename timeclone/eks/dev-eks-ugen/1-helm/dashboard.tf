@@ -2,8 +2,8 @@ resource "helm_release" "kubernetes_dashboard" {
   name       = "kubernetes-dashboard"
   namespace  = "kube-system"
   chart      = "kubernetes-dashboard"
-  version    = "1.10.1"
-  repository = data.helm_repository.stable.metadata.0.name
+  version    = "2.0.1"
+  repository = data.helm_repository.kubernetes-dashboard.metadata.0.name
 
   values = [
     "${file("values/dashboard-values.yaml")}"
@@ -26,6 +26,5 @@ resource "helm_release" "kubernetes_dashboard" {
 
   depends_on = [
     helm_release.dns_external_staging,
-    # helm_release.prometheus_operator,
   ]
 }
