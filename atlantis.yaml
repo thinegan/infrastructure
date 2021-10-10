@@ -1,0 +1,9 @@
+version: 3
+automerge: true
+projects:
+  - name: timeclone-S3
+    dir: ./timeclone/s3
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+    terraform_version: v1.0.7

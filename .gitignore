@@ -1,0 +1,20 @@
+# Ignore direnv
+.envrc*
+
+*.swp
+
+# Ignore VSCode
+.vscode
+
+# Ignore Terraform files
+.terraform*
+
+
+# Ignore Terraform Plan files
+*.tfplan
+
+# .DS_Store
+.DS_Store
+
+# Ignore tfstate
+*.tfstate*
