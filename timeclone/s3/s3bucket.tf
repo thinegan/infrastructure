@@ -12,7 +12,7 @@
 # }
 
 resource "aws_s3_bucket" "bucket" {
-  bucket = "my-tf-test-timeclone5"
+  bucket = "my-tf-test-timeclone6"
   acl    = "private"
 
   tags = {
