@@ -1,8 +1,8 @@
-# Self Service Infra and Github Operations (using Atlantis)
+# Self Service Infra and Github Operations (using Atlantis) Example
 
-# infrastructure
-terraform
-Self Service
-workflow trigger
-trigger review reopen
-pull request declined!
+
+## Objective
+
+Infrastructure as code (IaC)
+
+Example of self-service common operations needed to develop + maintain their service.
