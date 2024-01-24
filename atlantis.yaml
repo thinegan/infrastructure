@@ -1,0 +1,154 @@
+version: 3
+automerge: true
+projects:
+  - name: timeclone-pod-devops-staging-iam
+    dir: ./timeclone/pod-DEVOPS/aws/staging/iam
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-de-staging-iam
+    dir: ./timeclone/pod-DE/aws/staging/iam
+    workflow: staging
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-staging-s3
+    dir: ./timeclone/pod-DEVOPS/aws/staging/s3
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-staging-network
+    dir: ./timeclone/pod-DEVOPS/aws/staging/network
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-staging-route53
+    dir: ./timeclone/pod-DEVOPS/aws/staging/route53
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-staging-kms
+    dir: ./timeclone/pod-DEVOPS/aws/staging/kms
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-staging-secretmanager
+    dir: ./timeclone/pod-DEVOPS/aws/staging/secretmanager
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-de-staging-secretmanager
+    dir: ./timeclone/pod-DE/aws/staging/secretmanager
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-staging-ec2
+    dir: ./timeclone/pod-DEVOPS/aws/staging/ec2
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-github-repository
+    dir: ./timeclone/pod-DEVOPS/github/repository
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-github-team-membership
+    dir: ./timeclone/pod-DEVOPS/github/team_membership
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-staging-ecr
+    dir: ./timeclone/pod-DEVOPS/aws/staging/ecr
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-staging-rds-postgres-supplier
+    dir: ./timeclone/pod-DEVOPS/aws/staging/rds/postgres_supplier
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-staging-rds-postgres-employee
+    dir: ./timeclone/pod-DEVOPS/aws/staging/rds/postgres_employee
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-staging-idp
+    dir: ./timeclone/pod-DEVOPS/aws/staging/idp
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-cloudflare
+    dir: ./timeclone/pod-DEVOPS/cloudflare
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-codefresh-pipelines
+    dir: ./timeclone/pod-DEVOPS/codefresh/pipelines
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-datadog
+    dir: ./timeclone/pod-DEVOPS/datadog
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-argocd-staging-eks-test6
+    dir: ./timeclone/pod-DEVOPS/argocd/staging/stag-eks-test6
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-staging-eks-test6
+    dir: ./timeclone/pod-DEVOPS/aws/staging/eks/stag-eks-test6
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-de-github-team-membership
+    dir: ./timeclone/pod-DE/github/team_membership
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-de-github-repository
+    dir: ./timeclone/pod-DE/github/repository
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+
+#########################################################################################################################
+# Production Account
+# profile : production1 
+#########################################################################################################################
+  - name: timeclone-pod-devops-production-iam
+    dir: ./timeclone/pod-DEVOPS/aws/production/iam
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-production-kms
+    dir: ./timeclone/pod-DEVOPS/aws/production/kms
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-production-secretmanager
+    dir: ./timeclone/pod-DEVOPS/aws/production/secretmanager
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-production-network-vpc
+    dir: ./timeclone/pod-DEVOPS/aws/production/network/vpc
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-production-general4
+    dir: ./timeclone/pod-DEVOPS/aws/production/eks/general4
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-twingate-production-general4
+    dir: ./timeclone/pod-DEVOPS/twingate/production/general4
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
+  - name: timeclone-pod-devops-argocd-production-general4
+    dir: ./timeclone/pod-DEVOPS/argocd/production/general4
+    autoplan:
+      when_modified: ["*.tf"]
+      enabled: true
