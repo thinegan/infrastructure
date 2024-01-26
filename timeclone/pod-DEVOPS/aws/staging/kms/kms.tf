@@ -35,7 +35,7 @@ module "kms_timeclone_dev" {
   ]
 
   # Aliases
-  aliases                = ["timeclone-dev/external"]
+  aliases                 = ["timeclone-dev/external"]
   aliases_use_name_prefix = true
 
   tags = {

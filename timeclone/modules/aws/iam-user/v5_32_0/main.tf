@@ -38,12 +38,12 @@ module "this" {
   policy_arns = var.policy_arns
 
   force_destroy                 = true
-  create_iam_user_login_profile  = true
+  create_iam_user_login_profile = true
   create_iam_access_key         = false
   password_reset_required       = true
 
   # User "<username>" has uploaded public key here - https://keybase.io/<username>/pgp_keys.asc
-  pgp_key = local.pgp_usr_publickey
+  pgp_key         = local.pgp_usr_publickey
   password_length = sum([12, var.forcedreset])
 
 }
