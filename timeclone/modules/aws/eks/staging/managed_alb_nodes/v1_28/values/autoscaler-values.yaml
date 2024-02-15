@@ -1,0 +1,31 @@
+###########################################################################################
+# Custom Configuration
+###########################################################################################
+# extraArgs -- Additional container arguments.
+# Refer to https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/FAQ.md#what-are-the-parameters-to-ca for the full list of cluster autoscaler
+# parameters and their default values.
+# Everything after the first _ will be ignored allowing the use of multi-string arguments.
+extraArgs:
+  logtostderr: true
+  stderrthreshold: info
+  v: 4
+  scale-down-enabled: true
+  scan-interval: 10s
+  scale-down-unneeded-time: 10m
+  balance-similar-node-groups: true
+  scale-down-delay-after-add: 20m
+  scale-down-delay-after-delete: 0s
+  scale-down-delay-after-failure: 3m
+  scale-down-utilization-threshold: 0.2
+  scale-down-non-empty-candidates-count: 3
+  skip-nodes-with-local-storage: true
+  skip-nodes-with-system-pods: true
+  # write-status-configmap: true
+  # status-config-map-name: cluster-autoscaler-status
+  # leader-elect: true
+  # leader-elect-resource-lock: endpoints
+  # expander: random
+  # min-replica-count: 0
+  # max-node-provision-time: 15m0s
+  # balancing-ignore-label_1: first-label-to-ignore
+  # balancing-ignore-label_2: second-label-to-ignore

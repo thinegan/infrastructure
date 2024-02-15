@@ -1,0 +1,98 @@
+# Default values for kube-prometheus-stack.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+## Using default values from https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml
+##
+grafana:
+  enabled: true
+  namespaceOverride: ""
+
+  ## ForceDeployDatasources Create datasource configmap even if grafana deployment has been disabled
+  ##
+  forceDeployDatasources: false
+
+  ## ForceDeployDashboard Create dashboard configmap even if grafana deployment has been disabled
+  ##
+  forceDeployDashboards: false
+
+  ## Deploy default dashboards
+  ##
+  defaultDashboardsEnabled: true
+
+  ## Timezone for the default dashboards
+  ## Other options are: browser or a specific timezone, i.e. Europe/Luxembourg
+  ##
+  defaultDashboardsTimezone: utc
+
+  adminPassword: prom-operator
+  # admin:
+  #   existingSecret: monitoring-prometheus
+  #   userKey: ADMIN_USERNAME
+  #   passwordKey: ADMIN_PASSWORD
+
+  # Grafana's primary configuration
+  # NOTE: values in map will be converted to ini format
+  # ref: http://docs.grafana.org/installation/configuration/
+  #
+  grafana.ini:
+    ## grafana Authentication can be enabled with the following values on grafana.ini
+    server:
+      # The full public facing url you use in browser, used for redirects and emails
+      root_url: https://xxxxx.com
+    # https://grafana.com/docs/grafana/latest/auth/github/#enable-github-in-grafana
+    # Team_id : devops => 5233145
+    
+    auth.github:
+      enabled: true
+      allow_sign_up: true
+      scopes: user:email,read:org
+      auth_url: https://github.com/login/oauth/authorize
+      token_url: https://github.com/login/oauth/access_token
+      api_url: https://api.github.com/user
+      team_ids: 5233145,
+      allowed_organizations: crytera
+      client_id: xxxxxxxxx
+      client_secret: xxxxxxxxx
+
+  rbac:
+    ## If true, Grafana PSPs will be created
+    ##
+    pspEnabled: false
+
+  ingress:
+    ## If true, Grafana Ingress will be created
+    ##
+    enabled: true
+# grafana.ingress.annotations.alb\\.ingress\\.kubernetes\\.io/certificate-arn
+    annotations:
+      kubernetes.io/ingress.class: alb
+      alb.ingress.kubernetes.io/scheme: internal
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/group.name: my-group
+      alb.ingress.kubernetes.io/security-groups: "sg-xxxxxx"
+      alb.ingress.kubernetes.io/listen-ports:  '[{"HTTP": 80}, {"HTTPS":443}]'
+      alb.ingress.kubernetes.io/backend-protocol: HTTP
+      alb.ingress.kubernetes.io/group: staging-grafana-ingress
+      alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:xxxxxxxx:certificate/xxxxxxx"
+      alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+      # allow 404s on the health check
+      alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+      alb.ingress.kubernetes.io/healthcheck-path: "/api/health"
+      alb.ingress.kubernetes.io/success-codes: "200"
+    labels:
+      app: "cluster-monitoring-grafana"
+
+    hosts: 
+      - xxxxx.crytera.com
+
+    path: /
+
+    ## TLS configuration for grafana Ingress
+    ## Secret must be manually created in the namespace
+    ##
+    tls: []
+    # - secretName: grafana-general-tls
+    #   hosts:
+    #   - grafana.example.com
+
