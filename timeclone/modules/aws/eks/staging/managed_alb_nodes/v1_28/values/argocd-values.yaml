@@ -1,0 +1,110 @@
+###########################################################################################
+# Custom Configuration
+###########################################################################################
+## Dex
+dex:
+  # -- Enable dex
+  enabled: true
+  # -- Dex name
+  name: dex-server
+
+  # -- Environment variables to pass to the Dex server
+  # require first : kubectl apply -f manifests/argocd/secrets/sealed-secrets.json
+  env:
+    - name: GT_ARGOCD_ClientID
+      valueFrom:
+        secretKeyRef:
+          name: argocd-sm
+          key: GT_ARGOCD_ClientID
+    - name: GT_ARGODC_ClientSecret
+      valueFrom:
+        secretKeyRef:
+          name: argocd-sm
+          key: GT_ARGODC_ClientSecret
+    - name: GT_ARGODC_RedirectUrl
+      valueFrom:
+        secretKeyRef:
+          name: argocd-sm
+          key: GT_ARGODC_RedirectUrl
+
+## Argo Configs
+configs:
+  # General Argo CD configuration
+  ## Ref: https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/argocd-cm.yaml
+  cm:
+    # -- Argo CD's externally facing base URL (optional). Required when configuring SSO
+    url: https://xxxxx.crytera.com
+
+    # Dex configuration
+    dex.config: |
+      connectors:
+        - type: github
+          id: github
+          name: Github
+          config:
+            clientID: $GT_ARGOCD_ClientID
+            clientSecret: $GT_ARGODC_ClientSecret
+            redirectURI: $GT_ARGODC_RedirectUrl
+            orgs:
+            - name: crytera
+
+  # Argo CD RBAC policy configuration
+  ## Ref: https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/rbac.md
+  rbac:
+    # -- Create the argocd-rbac-cm configmap with ([Argo CD RBAC policy]) definitions.
+    # If false, it is expected the configmap will be created by something else.
+    # Argo CD will not work if there is no configmap created with the name above.
+    create: true
+
+    # -- The name of the default role which Argo CD will falls back to, when authorizing API requests (optional).
+    # If omitted or empty, users may be still be able to login, but will see no apps, projects, etc...
+    # policy.default: ''
+    policy.default: role:readonly
+
+    # -- File containing user-defined policies and role definitions.
+    # @default -- `''` (See [values.yaml])
+    # policy.csv: ''
+    policy.csv: |
+      p, role:org-admin, applications, *, */*, allow
+      p, role:org-admin, clusters, get, *, allow
+      p, role:org-admin, repositories, get, *, allow
+      p, role:org-admin, repositories, create, *, allow
+      p, role:org-admin, repositories, update, *, allow
+      p, role:org-admin, repositories, delete, *, allow
+      g, crytera:devops, role:org-admin
+
+## Server
+server:
+  ## Server service configuration
+  service:
+    # -- Server service type
+    type: ClusterIP
+    # type: NodePort
+
+  ingress:
+    # -- Enable an ingress resource for the Argo CD server
+    enabled: true
+
+    annotations:
+      kubernetes.io/ingress.class: alb
+      alb.ingress.kubernetes.io/group.name: my-group
+      alb.ingress.kubernetes.io/scheme: internal
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/security-groups: "sg-xxxxxxxxxxxxx"
+      alb.ingress.kubernetes.io/listen-ports:  '[{"HTTP": 80}, {"HTTPS":443}]'
+      alb.ingress.kubernetes.io/backend-protocol: HTTPS
+      alb.ingress.kubernetes.io/group: staging-argocd-ingress
+      alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:xxxxxxxx:certificate/xxxxxxxxxx"
+      alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+      # allow 404s on the health check
+      alb.ingress.kubernetes.io/healthcheck-protocol: HTTPS
+      alb.ingress.kubernetes.io/healthcheck-path: "/"
+      alb.ingress.kubernetes.io/success-codes: "200,307"
+    labels:
+      app: "cluster-argo-cd-argocd-server"
+
+    hosts:
+      - xxxxx.crytera.com
+
+    path:
+      - /*
