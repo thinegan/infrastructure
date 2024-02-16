@@ -735,7 +735,7 @@ resource "helm_release" "codefresh" {
   namespace        = "codefresh"
   chart            = "cf-runtime"
   repository       = "https://chartmuseum.codefresh.io/cf-runtime"
-  version = "6.1.12"
+  version          = "6.1.12"
 
   values = [
     file("${path.module}/values/runner-values.yaml")
